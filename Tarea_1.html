@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro Actividades DCC</title>
+    <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 40px auto; }
+    .error { color: #c0392b; font-size: 0.85em; display: none; }
+    .error.visible { display: block; }
+    .actividad-item { border: 1px solid #ccc; padding: 10px; margin: 8px 0; border-radius: 4px; }
+    .actividad-item .tipo { font-size: 0.8em; color: #666; text-transform: uppercase; }
+    .actividad-item .nombre { font-weight: bold; }
+    .contador { color: #666; font-size: 0.9em; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+    <h1>Registro de Actividades DCC</h1>
+
+    <form id="form-actividades">
+        <div>
+            <label for="RUT">Indique Rut sin puntos y con guion:</label><br>
+            <input type="text" id="RUT">
+            <span class="error" id="error-rut">Debe ingresar un RUT.</span>
+        </div>
+        <br>
+        <div>
+            <label for="tipo_persona">Indique su labor:</label><br>
+            <select id="tipo_persona">
+                <option value="">-- Seleccione --</option>
+                <option value="Academico">Academico</option>
+                <option value="Funcionario">Funcionario</option>
+                <option value="Estudiante Pregrado">Estudiante Pregrado</option>
+                <option value="Estudiante Postgrado">Estudiante Postgrado</option>
+            </select>
+            <span class="error" id="error-tipo">Debe seleccionar una opcion.</span>
+        </div>
+        <br>
+        <div>
+            <label for="tipo-actividad">Tipo:</label><br>
+            <select id="tipo-actividad">
+                <option value="">-- Seleccione --</option>
+                <option value="deportiva">Deportiva</option>
+                <option value="artistica">Artística</option>
+                <option value="tecnologica">Tecnológica</option>
+                <option value="social">Social</option>
+                <option value="recreativa">Recreativa</option>
+            </select>
+            <span class="error" id="error-tipo">Debe seleccionar un tipo.</span>
+        </div>
+        <br>
+        <div>
+
+        <button type="submit">Agregar actividad</button>
+    </form>
+    <script src="script_tarea_1.js"></script>
+</body>
+</html> 
