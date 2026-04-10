@@ -1,0 +1,5 @@
+document.getElementById("form-actividades").addEventListener("submit", function(event) {
+    event.preventDefault();
+    const Rut = document.getElementById("RUT").value;
+
+});
