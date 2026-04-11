@@ -25,6 +25,18 @@
         </div>
         <br>
         <div>
+            <label for="nombre">Indique su nombre:</label><br>
+            <input type="text" id="nombre">
+            <span class="error" id="error-nombre">Debe ingresar un nombre (mínimo 3 caracteres).</span>
+        </div>
+        <br>
+        <div>
+            <label for="apellido">Indique su apellido:</label><br>
+            <input type="text" id="apellido">
+            <span class="error" id="error-appelido">Debe ingresar un apellido (mínimo 3 caracteres).</span>
+        </div>
+        <br>
+        <div>
             <label for="tipo_persona">Indique su labor:</label><br>
             <select id="tipo_persona">
                 <option value="">-- Seleccione --</option>
@@ -50,9 +62,53 @@
         </div>
         <br>
         <div>
-
+            <label for="fecha">Selecciona la fecha:</label><br>
+            <input type="date" id="fecha">
+        </div>
+        <br>
+        <div>
+            <label>Desde:</label><br>
+            <input type="time" id="hora-inicio">
+            <span class="error" id="error-inicio">Ingrese hora de inicio.</span>
+        </div>
+        <br>
+        <div>
+            <label>Hasta:</label><br>
+            <input type="time" id="hora-fin">
+            <span class="error" id="error-fin">Ingrese hora de término válida.</span>
+        </div>
+        <br>
+        <div>
+            <label for="media">Suba una imagen o video realizando la actividad:</label>
+            <input type="file" id="media" name="media" accept="image/*,video/*">
+        </div>
+        <br>
         <button type="submit">Agregar actividad</button>
     </form>
+    <h2>Listado de miembros</h2>
+
+        <label>Filtrar por tipo:</label>
+        <select id="filtro-tipo">
+        <option value="">Todos</option>
+        <option value="deportiva">Deportiva</option>
+        <option value="artistica">Artística</option>
+        </select>
+
+        <label>Ordenar por:</label>
+        <select id="orden">
+        <option value="nombre">Nombre</option>
+        <option value="email">Email</option>
+        </select>
+
+    <div id="lista-miembros"></div>
+    <div>
+        <button id="prev">Anterior</button>
+        <span id="pagina-actual">1</span>
+        <button id="next">Siguiente</button>
+    </div>
+    <div>
+        <canvas id="grafico-miembros" width="400" height="200"></canvas>
+    </div>
     <script src="script_tarea_1.js"></script>
 </body>
 </html> 
