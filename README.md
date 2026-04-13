@@ -4,13 +4,13 @@ En terminos de diseño de la pagina solo use la base del ejercicio que nos manda
 
 Para empezar lo primero que nos permite identificar a una persona es el Rut, despues nombre y apellido asique por eso parto preguntando esos 3 primeros datos en el formulario.
 
-Para la fecha use <input type="date">, esto hace mas facil elegir el dia en que se realizo la actividad, para las horas de inicio a fin lo logre con <input type="time">.
+Para la fecha use input type="date", esto hace mas facil elegir el dia en que se realizo la actividad, para las horas de inicio a fin lo logre con input type="time".
 
-Para la subida de la foto o video use <input type="file" accept="image/*,video/*">, vi que podia elegir que aceptaba este input lo que me facilito la tarea.
+Para la subida de la foto o video use input type="file" accept="image/*,video/*", vi que podia elegir que aceptaba este input lo que me facilito la tarea.
 
 Para el listado de miembros, hice que se pudiera filtrar por tipo de actividad y que se pudiera ordenar por nombre o apellido.
 
-Para el grafico utilizo <canvas id="grafico-miembros">, busque como poner un grafico y esto aparecio de primero en mi busqueda.
+Para el grafico utilizo canvas id="grafico-miembros", busque como poner un grafico y esto aparecio de primero en mi busqueda.
 
 
 Ahora en las validaciones, utilizando de base el ejercicio de las semanas anteriores, tomo los valores de todos los datos, utilizando trim() para los datos que son strings para evitar errores con espacios innecesarios.
