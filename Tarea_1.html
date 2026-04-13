@@ -69,13 +69,13 @@
         <div>
             <label>Desde:</label><br>
             <input type="time" id="hora_inicio">
-            <span class="error" id="error-inicio_fecha">Ingrese hora de inicio.</span>
+            <span class="error" id="error-inicio_hora">Ingrese hora de inicio.</span>
         </div>
         <br>
         <div>
             <label>Hasta:</label><br>
             <input type="time" id="hora_fin">
-            <span class="error" id="error-fin_fecha">Ingrese hora de término válida.</span>
+            <span class="error" id="error-fin_hora">Ingrese hora de término válida.</span>
         </div>
         <br>
         <div>
@@ -85,6 +85,7 @@
         <br>
         <button type="submit">Agregar actividad</button>
     </form>
+
     <h2>Listado de miembros</h2>
 
         <label>Filtrar por tipo:</label>
@@ -92,15 +93,19 @@
         <option value="">Todos</option>
         <option value="deportiva">Deportiva</option>
         <option value="artistica">Artística</option>
+        <option value="tecnologica">Tecnológica</option>
+        <option value="social">Social</option>
+        <option value="recreativa">Recreativa</option>
         </select>
 
         <label>Ordenar por:</label>
         <select id="orden">
         <option value="nombre">Nombre</option>
-        <option value="email">Email</option>
+        <option value="apellido">Apellido</option>
         </select>
 
     <div id="lista-miembros"></div>
+    <br>
     <div>
         <button id="prev">Anterior</button>
         <span id="pagina-actual">1</span>

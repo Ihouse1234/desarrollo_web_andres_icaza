@@ -54,29 +54,29 @@ document.getElementById("form-actividades").addEventListener("submit", function(
 
 
     if (!horaInicio) {
-      mostrarError("error-inicio_fecha");
+      mostrarError("error-inicio_hora");
       valido = false;
     } else {
-      ocultarError("error-inicio_fecha");
+      ocultarError("error-inicio_hora");
     }
 
     if (!horaFin || horaFin <= horaInicio) {
-      mostrarError("error-fin_fecha");
+      mostrarError("error-fin_hora");
       valido = false;
     } else {
-      ocultarError("error-fin_fecha");
+      ocultarError("error-fin_");
     }
 
     if (media) {
-      const tiposPermitidos = ["image/", "video/"];
-      const esValido = tiposPermitidos.some(tipo =>
-        media.type.startsWith(tipo)
-      );
-
-    if (!esValido) {
-        alert("El archivo debe ser imagen o video.");
-        valido = false;
-      }
+        if (media.type.startsWith(tipo) === "image/*" || media.type.startsWith(tipo) === "video/*" ){
+            const esValido = true;
+        } else {
+            const esValido = false;
+        }
+        if (!esValido) {
+            alert("El archivo debe ser imagen o video.");
+            valido = false;
+        }
     }
 
     if (valido) {
