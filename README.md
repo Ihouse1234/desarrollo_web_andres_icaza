@@ -1,5 +1,6 @@
 # desarrollo_web_andres_icaza
 
+Tarea 1
 En terminos de diseño de la pagina solo use la base del ejercicio que nos mandaron las semanas anteriores.
 
 Para empezar lo primero que nos permite identificar a una persona es el Rut, despues nombre y apellido asique por eso parto preguntando esos 3 primeros datos en el formulario.
@@ -28,3 +29,22 @@ Para las horas de inicio y fin, solo reviso si se respondia y ademas si la hora 
 Para el archivo que se sube, revisamos si es imagen o video con type.startswith.
 
 Si se cumple todo, tiramos una alerta y reseteamos todos los valores de la pagina.
+
+
+Tarea 2
+
+
+El diseño lo busque en internet y me aparecio ese, no tengo realmente mucha explicacion que hace cada cosa ahi.
+
+Resumen de cada HTML
+base.html — Esqueleto base
+Es la plantilla madre de la que heredan todos los demás con {% extends 'base.html' %}. Define la barra de navegación con los tres links (Registrar, Listado, Estadísticas), el sistema de flash messages, y los bloques vacíos {% block css %}, {% block content %} y {% block javascript %} que cada página rellena con su propio contenido.
+
+registro.html — Formulario de registro
+Tiene dos secciones: datos personales (nombre, email, teléfono, región, comuna) y actividades. El selector de comunas se filtra con JavaScript según la región elegida. Las actividades se agregan y eliminan dinámicamente con botones. Cada actividad tiene su propio campo de fotos con preview. Al hacer submit, el JS valida todo primero y si pasa, Flask valida nuevamente en el servidor. Si hay errores de servidor, muestra los mensajes de error.
+
+miembros.html — Listado paginado
+Muestra todos los miembros en una tabla con columnas de nombre, email, teléfono, comuna, región, cantidad de actividades y fecha de registro. Cada fila es clickeable y lleva al detalle del miembro. Abajo tiene paginación con botones de anterior/siguiente y números de página.
+
+miembro_detalle.html — Perfil del miembro
+Muestra el perfil completo de un miembro: un avatar con la inicial del nombre, sus datos de contacto y ubicación. Debajo hay una grilla de tarjetas, una por cada actividad, con su tipo (con color según categoría), día, hora, duración y descripción. Si la actividad tiene fotos se muestran en miniatura y al hacer click se abren.
