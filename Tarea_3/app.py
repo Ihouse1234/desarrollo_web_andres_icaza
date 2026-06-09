@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.secret_key = "mi_clave_secreta"
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
-    'mysql+pymysql://cc5002:programacionweb@localhost:3306/tarea2'
+    'mysql+pymysql://cc5002:programacionweb@localhost:3306/tarea2?charset=utf8mb4'
 )
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -22,20 +22,19 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 db = SQLAlchemy(app)
 
-# ─────────────────────────────────────────────
-# MODELOS
-# ─────────────────────────────────────────────
 class Region(db.Model):
     __tablename__ = 'region'
     id      = db.Column(db.Integer, primary_key=True)
     nombre  = db.Column(db.String(200), nullable=False)
-    comunas = db.relationship('Comuna', backref='region')
+    comunas = db.relationship('Comuna', back_populates='region')  # ← back_populates
 
 class Comuna(db.Model):
     __tablename__ = 'comuna'
     id        = db.Column(db.Integer, primary_key=True)
     nombre    = db.Column(db.String(200), nullable=False)
     region_id = db.Column(db.Integer, db.ForeignKey('region.id'))
+    region    = db.relationship('Region', back_populates='comunas')  # ← back_populates
+    miembros  = db.relationship('Miembro', back_populates='comuna')  # ← agregar
 
 class Miembro(db.Model):
     __tablename__ = 'miembro'
@@ -45,6 +44,7 @@ class Miembro(db.Model):
     telefono       = db.Column(db.String(15),  nullable=False)
     fecha_registro = db.Column(db.DateTime,    nullable=False)
     comuna_id      = db.Column(db.Integer, db.ForeignKey('comuna.id'))
+    comuna         = db.relationship('Comuna', back_populates='miembros')  # ← agregar
     actividades    = db.relationship('Actividad', backref='miembro')
 
 class Actividad(db.Model):
@@ -68,9 +68,6 @@ class Foto(db.Model):
     nombre_archivo = db.Column(db.String(300))
     actividad_id   = db.Column(db.Integer, db.ForeignKey('actividad.id'))
 
-# ─────────────────────────────────────────────
-# HELPERS
-# ─────────────────────────────────────────────
 DIAS_VALIDOS  = {'lunes','martes','miércoles','jueves','viernes','sábado','domingo'}
 TIPOS_VALIDOS = {'arte','deporte','tecnología','social','recreación','otra'}
 RE_HORA  = re.compile(r'^\d{2}:\d{2}$')
@@ -110,11 +107,7 @@ def validar_miembro(nombre, email, telefono, region_id, comuna_id):
             errors['comuna_id'] = 'La comuna no corresponde a la región.'
     return errors
 
-# ─────────────────────────────────────────────
-# RUTAS
-# ─────────────────────────────────────────────
 
-# ── PORTADA ──────────────────────────────────
 @app.route('/')
 def index():
     ultimos_miembros  = Miembro.query.order_by(Miembro.fecha_registro.desc()).limit(5).all()
@@ -131,7 +124,6 @@ def index():
         total_comunas=total_comunas,
     )
 
-# ── REGISTRO ─────────────────────────────────
 @app.route('/registro', methods=['GET', 'POST'])
 def registro():
     regiones = Region.query.order_by(Region.nombre).all()
@@ -218,7 +210,6 @@ def registro():
     flash(f'Miembro "{nombre}" registrado exitosamente.', 'success')
     return redirect(url_for('index'))
 
-# ── LISTADO DE MIEMBROS ───────────────────────
 @app.route('/miembros')
 def miembros():
     page       = request.args.get('page', 1, type=int)
@@ -229,7 +220,6 @@ def miembros():
                            miembros=pagination.items,
                            pagination=pagination)
 
-# ── DETALLE DE MIEMBRO ────────────────────────
 @app.route('/miembros/<int:id>')
 def miembro_detalle(id):
     miembro = db.session.get(Miembro, id)
@@ -237,23 +227,6 @@ def miembro_detalle(id):
         flash('Miembro no encontrado.', 'error')
         return redirect(url_for('miembros'))
     return render_template('miembro_detalle.html', miembro=miembro)
-
-# ── TEST BD ───────────────────────────────────
-@app.route('/test-db')
-def test_db():
-    regiones = Region.query.all()
-    comunas  = Comuna.query.count()
-    miembros = Miembro.query.count()
-    resultado = f"""
-    <h2>Estado de la BD</h2>
-    <p>Regiones: {len(regiones)}</p>
-    <p>Comunas: {comunas}</p>
-    <p>Miembros: {miembros}</p>
-    <hr>
-    <h3>Lista de regiones:</h3>
-    <ul>{"".join(f"<li>{r.id} — {r.nombre}</li>" for r in regiones)}</ul>
-    """
-    return resultado
 
 if __name__ == '__main__':
     app.run(debug=True)
