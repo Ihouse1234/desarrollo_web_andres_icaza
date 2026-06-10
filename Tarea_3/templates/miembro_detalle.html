@@ -47,9 +47,6 @@
     display: flex; flex-wrap: wrap; gap: 0.4rem;
     margin-bottom: 0.75rem;
   }
-  .act-info {
-    font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;
-  }
   .act-desc {
     font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;
     margin-bottom: 0.75rem;
@@ -81,6 +78,75 @@
     cursor: pointer; display: flex; align-items: center; justify-content: center;
   }
 
+  /* COMENTARIOS */
+  .comentarios-section {
+    margin-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+  .comentarios-section h4 {
+    font-size: 0.8rem; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  .comentario-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.75rem; margin-bottom: 0.5rem;
+  }
+  .comentario-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .comentario-autor {
+    font-weight: 700; font-size: 0.82rem; color: var(--accent);
+  }
+  .comentario-fecha {
+    font-size: 0.75rem; color: var(--text-muted);
+  }
+  .comentario-texto {
+    font-size: 0.85rem; color: var(--text); line-height: 1.5;
+  }
+  .sin-comentarios {
+    font-size: 0.82rem; color: var(--text-muted); font-style: italic;
+  }
+
+  /* FORM COMENTARIO */
+  .form-comentario {
+    margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .form-comentario input,
+  .form-comentario textarea {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px;
+    padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.85rem;
+    width: 100%; transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .form-comentario input:focus,
+  .form-comentario textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  .form-comentario input.field-error-input,
+  .form-comentario textarea.field-error-input {
+    border-color: var(--danger);
+  }
+  .form-error-msg {
+    font-size: 0.75rem; color: var(--danger); display: none;
+  }
+  .btn-comentar {
+    align-self: flex-start;
+    background: var(--accent); color: #0e0f13;
+    border: none; border-radius: 8px;
+    padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; font-family: var(--font-body); transition: background 0.2s;
+  }
+  .btn-comentar:hover { background: #d4f570; }
+  .btn-comentar:disabled { opacity: 0.5; cursor: not-allowed; }
+  .msg-exito {
+    font-size: 0.8rem; color: var(--success);
+    display: none; margin-top: 0.3rem;
+  }
+
   @media (max-width: 500px) {
     .profile-header { flex-direction: column; }
   }
@@ -90,19 +156,21 @@
 {% block content %}
 <a href="{{ url_for('miembros') }}" class="back-link">← Volver al listado</a>
 
+<!-- PERFIL -->
 <div class="profile-header">
   <div class="avatar">{{ miembro.nombre[0]|upper }}</div>
   <div class="profile-info">
     <h1>{{ miembro.nombre }}</h1>
     <div class="profile-meta">
-      <span>{{ miembro.email }}</span>
-      <span>{{ miembro.telefono }}</span>
-      <span>{{ miembro.comuna.nombre }}, {{ miembro.comuna.region.nombre }}</span>
-      <span>Registrado el {{ miembro.fecha_registro.strftime('%d/%m/%Y a las %H:%M') }}</span>
+      <span>✉ {{ miembro.email }}</span>
+      <span>📞 {{ miembro.telefono }}</span>
+      <span>📍 {{ miembro.comuna.nombre }}, {{ miembro.comuna.region.nombre }}</span>
+      <span>📅 Registrado el {{ miembro.fecha_registro.strftime('%d/%m/%Y a las %H:%M') }}</span>
     </div>
   </div>
 </div>
 
+<!-- ACTIVIDADES -->
 <h2 style="margin-bottom:1rem">
   Actividades
   <span style="font-size:0.85rem;color:var(--text-muted);font-weight:400;margin-left:0.5rem">
@@ -120,8 +188,8 @@
         </div>
         <div class="act-meta">
           <span class="tag">{{ act.dia|capitalize }}</span>
-          <span class="tag">{{ act.hora_inicio }}</span>
-          <span class="tag">{{ act.duracion }}</span>
+          <span class="tag">🕐 {{ act.hora_inicio }}</span>
+          <span class="tag">⏱ {{ act.duracion }}</span>
         </div>
         {% if act.descripcion %}
           <p class="act-desc">{{ act.descripcion }}</p>
@@ -135,11 +203,49 @@
             {% for foto in act.fotos %}
               <div class="foto-item">
                 <img src="{{ url_for('static', filename='uploads/' + foto.nombre_archivo) }}"
-                     alt="{{ foto.nombre_archivo }}">
+                     alt="{{ foto.nombre_archivo }}"
+                     onclick="openLightbox(this.src)">
               </div>
             {% endfor %}
           </div>
         {% endif %}
+
+        <!-- COMENTARIOS -->
+        <div class="comentarios-section">
+          <h4>💬 Comentarios</h4>
+
+          <!-- Listado (se rellena con fetch) -->
+          <div id="comentarios-{{ act.id }}" class="comentarios-lista">
+            <p class="sin-comentarios">Cargando comentarios...</p>
+          </div>
+
+          <!-- Formulario -->
+          <div class="form-comentario">
+            <input type="text"
+                   id="nombre-{{ act.id }}"
+                   placeholder="Tu nombre (mín. 3, máx. 80 caracteres)"
+                   maxlength="80">
+            <span class="form-error-msg" id="err-nombre-{{ act.id }}">
+              El nombre debe tener entre 3 y 80 caracteres.
+            </span>
+
+            <textarea id="texto-{{ act.id }}"
+                      rows="4" cols="50"
+                      placeholder="Escribe un comentario (mín. 5 caracteres)..."></textarea>
+            <span class="form-error-msg" id="err-texto-{{ act.id }}">
+              El comentario debe tener al menos 5 caracteres.
+            </span>
+
+            <button class="btn-comentar"
+                    onclick="enviarComentario({{ act.id }})">
+              Agregar comentario
+            </button>
+            <span class="msg-exito" id="exito-{{ act.id }}">
+              ✓ Comentario agregado
+            </span>
+          </div>
+        </div>
+
       </div>
     {% endfor %}
   </div>
@@ -147,4 +253,144 @@
   <p style="color:var(--text-muted)">Este miembro no tiene actividades registradas.</p>
 {% endif %}
 
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="Foto ampliada">
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  // ── LIGHTBOX ──────────────────────────────────────────────────
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+
+  function renderComentario(c) {
+    const div = document.createElement('div');
+    div.className = 'comentario-item';
+    div.innerHTML = `
+      <div class="comentario-meta">
+        <span class="comentario-autor">${escapeHtml(c.nombre)}</span>
+        <span class="comentario-fecha">${c.fecha}</span>
+      </div>
+      <p class="comentario-texto">${escapeHtml(c.texto)}</p>
+    `;
+    return div;
+  }
+
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  function cargarComentarios(actividadId) {
+    const contenedor = document.getElementById(`comentarios-${actividadId}`);
+
+    fetch(`/api/comentarios/${actividadId}`)
+      .then(r => r.json())
+      .then(comentarios => {
+        contenedor.innerHTML = '';
+        if (comentarios.length === 0) {
+          contenedor.innerHTML = '<p class="sin-comentarios">Sin comentarios aún. ¡Sé el primero!</p>';
+        } else {
+          comentarios.forEach(c => contenedor.appendChild(renderComentario(c)));
+        }
+      })
+      .catch(() => {
+        contenedor.innerHTML = '<p class="sin-comentarios">Error al cargar comentarios.</p>';
+      });
+  }
+
+  function enviarComentario(actividadId) {
+    const inputNombre = document.getElementById(`nombre-${actividadId}`);
+    const inputTexto  = document.getElementById(`texto-${actividadId}`);
+    const errNombre   = document.getElementById(`err-nombre-${actividadId}`);
+    const errTexto    = document.getElementById(`err-texto-${actividadId}`);
+    const msgExito    = document.getElementById(`exito-${actividadId}`);
+    const btn         = inputNombre.closest('.form-comentario').querySelector('.btn-comentar');
+
+    const nombre = inputNombre.value.trim();
+    const texto  = inputTexto.value.trim();
+    let valid = true;
+
+
+    if (nombre.length < 3 || nombre.length > 80) {
+      errNombre.style.display = 'block';
+      inputNombre.classList.add('field-error-input');
+      valid = false;
+    } else {
+      errNombre.style.display = 'none';
+      inputNombre.classList.remove('field-error-input');
+    }
+
+    if (texto.length < 5) {
+      errTexto.style.display = 'block';
+      inputTexto.classList.add('field-error-input');
+      valid = false;
+    } else {
+      errTexto.style.display = 'none';
+      inputTexto.classList.remove('field-error-input');
+    }
+
+    if (!valid) return;
+
+    // Enviar al servidor
+    btn.disabled = true;
+    btn.textContent = 'Enviando...';
+
+    fetch(`/api/comentarios/${actividadId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nombre, texto })
+    })
+      .then(r => r.json())
+      .then(resp => {
+        if (resp.ok) {
+          inputNombre.value = '';
+          inputTexto.value  = '';
+          msgExito.style.display = 'inline';
+          setTimeout(() => { msgExito.style.display = 'none'; }, 3000);
+          cargarComentarios(actividadId); // recargar listado
+        } else {
+          // Errores del servidor
+          if (resp.errors) {
+            if (resp.errors.nombre) {
+              errNombre.textContent    = resp.errors.nombre;
+              errNombre.style.display  = 'block';
+              inputNombre.classList.add('field-error-input');
+            }
+            if (resp.errors.texto) {
+              errTexto.textContent    = resp.errors.texto;
+              errTexto.style.display  = 'block';
+              inputTexto.classList.add('field-error-input');
+            }
+          }
+        }
+      })
+      .catch(() => {
+        alert('Error al enviar el comentario. Intente nuevamente.');
+      })
+      .finally(() => {
+        btn.disabled = false;
+        btn.textContent = 'Agregar comentario';
+      });
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    {% for act in miembro.actividades %}
+      cargarComentarios({{ act.id }});
+    {% endfor %}
+  });
+  
+</script>
 {% endblock %}

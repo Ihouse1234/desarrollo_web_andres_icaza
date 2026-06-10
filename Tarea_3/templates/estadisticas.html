@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Estadísticas — ComuniRed{% endblock %}
+
+{% block css %}
+<style>
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+  .page-header p  { color: var(--text-muted); font-size: 0.9rem; }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .chart-card h2 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+  }
+
+  .chart-container {
+    width: 100%;
+    height: 350px;
+  }
+
+  .loading {
+    display: flex; align-items: center; justify-content: center;
+    height: 350px; color: var(--text-muted); font-size: 0.9rem;
+    gap: 0.5rem;
+  }
+
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--text-muted); text-decoration: none; font-size: 0.85rem;
+    margin-top: 2rem; transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--accent); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Estadísticas</h1>
+  <p>Indicadores y métricas de la comunidad.</p>
+</div>
+
+<div class="charts-grid">
+
+  <!-- GRÁFICO 1: Miembros por día -->
+  <div class="chart-card">
+    <h2>Miembros registrados por día</h2>
+    <div id="chart-miembros-dia" class="chart-container">
+      <div class="loading">⏳ Cargando datos...</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO 2: Actividades por tipo -->
+  <div class="chart-card">
+    <h2>Actividades por tipo</h2>
+    <div id="chart-actividades-tipo" class="chart-container">
+      <div class="loading">⏳ Cargando datos...</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO 3: Actividades por comuna -->
+  <div class="chart-card">
+    <h2>Actividades por comuna</h2>
+    <div id="chart-actividades-comuna" class="chart-container">
+      <div class="loading">⏳ Cargando datos...</div>
+    </div>
+  </div>
+
+</div>
+
+<a href="{{ url_for('index') }}" class="back-link">← Volver a la portada</a>
+{% endblock %}
+
+{% block javascript %}
+<!-- Highcharts -->
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<script>
+  // Tema oscuro para Highcharts
+  Highcharts.setOptions({
+    chart: {
+      backgroundColor: 'transparent',
+      style: { fontFamily: "'DM Sans', sans-serif" }
+    },
+    title:    { style: { color: '#e8eaf0', fontSize: '14px' } },
+    subtitle: { style: { color: '#7a7f96' } },
+    xAxis: {
+      labels:   { style: { color: '#7a7f96' } },
+      lineColor: '#2a2d3a',
+      tickColor: '#2a2d3a',
+      gridLineColor: '#2a2d3a'
+    },
+    yAxis: {
+      labels:        { style: { color: '#7a7f96' } },
+      gridLineColor: '#2a2d3a',
+      title:         { style: { color: '#7a7f96' } }
+    },
+    legend: {
+      itemStyle:      { color: '#e8eaf0' },
+      itemHoverStyle: { color: '#c8f060' }
+    },
+    tooltip: {
+      backgroundColor: '#1e2029',
+      borderColor:     '#2a2d3a',
+      style:           { color: '#e8eaf0' }
+    },
+    credits: { enabled: false }
+  });
+
+  // ── GRÁFICO 1: Miembros por día ──────────────────────────────
+  fetch('/api/miembros-por-dia')
+    .then(r => r.json())
+    .then(data => {
+      Highcharts.chart('chart-miembros-dia', {
+        chart: { type: 'line' },
+        title: { text: '' },
+        xAxis: {
+          categories: data.map(d => d.dia),
+          title: { text: 'Fecha' }
+        },
+        yAxis: {
+          title: { text: 'Cantidad de miembros' },
+          allowDecimals: false,
+          min: 0
+        },
+        series: [{
+          name: 'Miembros registrados',
+          data: data.map(d => d.total),
+          color: '#c8f060',
+          marker: { fillColor: '#c8f060' }
+        }],
+        tooltip: { valueSuffix: ' miembro(s)' }
+      });
+    })
+    .catch(() => {
+      document.getElementById('chart-miembros-dia').innerHTML =
+        '<p style="color:var(--danger);padding:1rem">Error al cargar los datos.</p>';
+    });
+
+  // ── GRÁFICO 2: Actividades por tipo ─────────────────────────
+  fetch('/api/actividades-por-tipo')
+    .then(r => r.json())
+    .then(data => {
+      Highcharts.chart('chart-actividades-tipo', {
+        chart: { type: 'pie' },
+        title: { text: '' },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b>: {point.percentage:.1f}%',
+              style: { color: '#e8eaf0' }
+            },
+            colors: ['#c8f060','#60c8f0','#c860f0','#f0c860','#f0a060','#7a7f96']
+          }
+        },
+        series: [{
+          name: 'Actividades',
+          data: data.map(d => ({ name: d.tipo, y: d.total }))
+        }]
+      });
+    })
+    .catch(() => {
+      document.getElementById('chart-actividades-tipo').innerHTML =
+        '<p style="color:var(--danger);padding:1rem">Error al cargar los datos.</p>';
+    });
+
+  // ── GRÁFICO 3: Actividades por comuna ────────────────────────
+  fetch('/api/actividades-por-comuna')
+    .then(r => r.json())
+    .then(data => {
+      Highcharts.chart('chart-actividades-comuna', {
+        chart: { type: 'bar' },
+        title: { text: '' },
+        xAxis: {
+          categories: data.map(d => d.comuna),
+          title: { text: 'Comuna' }
+        },
+        yAxis: {
+          title: { text: 'Total de actividades' },
+          allowDecimals: false,
+          min: 0
+        },
+        series: [{
+          name: 'Actividades',
+          data: data.map(d => d.total),
+          color: '#60c8f0'
+        }],
+        tooltip: { valueSuffix: ' actividad(es)' }
+      });
+    })
+    .catch(() => {
+      document.getElementById('chart-actividades-comuna').innerHTML =
+        '<p style="color:var(--danger);padding:1rem">Error al cargar los datos.</p>';
+    });
+</script>
+{% endblock %}

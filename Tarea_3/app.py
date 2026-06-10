@@ -3,9 +3,10 @@ import re
 import uuid
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.secret_key = "mi_clave_secreta"
@@ -67,6 +68,14 @@ class Foto(db.Model):
     ruta_archivo   = db.Column(db.String(300))
     nombre_archivo = db.Column(db.String(300))
     actividad_id   = db.Column(db.Integer, db.ForeignKey('actividad.id'))
+
+class Comentario(db.Model):
+    __tablename__ = 'comentario'
+    id            = db.Column(db.Integer, primary_key=True)
+    actividad_id  = db.Column(db.Integer, db.ForeignKey('actividad.id'), nullable=False)
+    nombre        = db.Column(db.String(80), nullable=False)
+    texto         = db.Column(db.Text, nullable=False)
+    fecha         = db.Column(db.DateTime, nullable=False)
 
 DIAS_VALIDOS  = {'lunes','martes','miércoles','jueves','viernes','sábado','domingo'}
 TIPOS_VALIDOS = {'arte','deporte','tecnología','social','recreación','otra'}
@@ -227,6 +236,145 @@ def miembro_detalle(id):
         flash('Miembro no encontrado.', 'error')
         return redirect(url_for('miembros'))
     return render_template('miembro_detalle.html', miembro=miembro)
+
+@app.route('/estadisticas')
+def estadisticas():
+    return render_template('estadisticas.html')
+ 
+ 
+# ── API: Miembros por día ─────────────────────
+@app.route('/api/miembros-por-dia')
+def api_miembros_por_dia():
+    resultados = (
+        db.session.query(
+            func.date(Miembro.fecha_registro).label('dia'),
+            func.count(Miembro.id).label('total')
+        )
+        .group_by(func.date(Miembro.fecha_registro))
+        .order_by(func.date(Miembro.fecha_registro))
+        .all()
+    )
+    data = [
+        {
+            'dia':   str(r.dia),   # formato 'YYYY-MM-DD'
+            'total': r.total
+        }
+        for r in resultados
+    ]
+    return jsonify(data)
+ 
+ 
+# ── API: Actividades por tipo ─────────────────
+@app.route('/api/actividades-por-tipo')
+def api_actividades_por_tipo():
+    resultados = (
+        db.session.query(
+            Actividad.tipo.label('tipo'),
+            func.count(Actividad.id).label('total')
+        )
+        .group_by(Actividad.tipo)
+        .order_by(func.count(Actividad.id).desc())
+        .all()
+    )
+    data = [
+        {
+            'tipo':  r.tipo,
+            'total': r.total
+        }
+        for r in resultados
+    ]
+    return jsonify(data)
+ 
+ 
+# ── API: Actividades por comuna ───────────────
+@app.route('/api/actividades-por-comuna')
+def api_actividades_por_comuna():
+    resultados = (
+        db.session.query(
+            Comuna.nombre.label('comuna'),
+            func.count(Actividad.id).label('total')
+        )
+        .join(Miembro, Miembro.comuna_id == Comuna.id)
+        .join(Actividad, Actividad.miembro_id == Miembro.id)
+        .group_by(Comuna.nombre)
+        .order_by(func.count(Actividad.id).desc())
+        .all()
+    )
+    data = [
+        {
+            'comuna': r.comuna,
+            'total':  r.total
+        }
+        for r in resultados
+    ]
+    return jsonify(data)
+ 
+@app.route('/api/comentarios/<int:actividad_id>', methods=['GET'])
+def api_get_comentarios(actividad_id):
+    # Verificar que la actividad existe
+    actividad = db.session.get(Actividad, actividad_id)
+    if actividad is None:
+        return jsonify({'error': 'Actividad no encontrada'}), 404
+ 
+    comentarios = (
+        Comentario.query
+        .filter_by(actividad_id=actividad_id)
+        .order_by(Comentario.fecha.asc())
+        .all()
+    )
+    data = [
+        {
+            'id':     c.id,
+            'nombre': c.nombre,
+            'texto':  c.texto,
+            'fecha':  c.fecha.strftime('%d/%m/%Y %H:%M')
+        }
+        for c in comentarios
+    ]
+    return jsonify(data)
+ 
+ 
+# ── API: POST nuevo comentario ────────────────
+@app.route('/api/comentarios/<int:actividad_id>', methods=['POST'])
+def api_post_comentario(actividad_id):
+    # Verificar que la actividad existe
+    actividad = db.session.get(Actividad, actividad_id)
+    if actividad is None:
+        return jsonify({'ok': False, 'error': 'Actividad no encontrada'}), 404
+ 
+    datos = request.get_json()
+    if not datos:
+        return jsonify({'ok': False, 'error': 'JSON inválido'}), 400
+ 
+    nombre = datos.get('nombre', '').strip()
+    texto  = datos.get('texto', '').strip()
+ 
+    # Validación servidor
+    errors = {}
+    if len(nombre) < 3 or len(nombre) > 80:
+        errors['nombre'] = 'El nombre debe tener entre 3 y 80 caracteres.'
+    if len(texto) < 5:
+        errors['texto'] = 'El comentario debe tener al menos 5 caracteres.'
+ 
+    if errors:
+        return jsonify({'ok': False, 'errors': errors}), 400
+ 
+    nuevo = Comentario(
+        actividad_id = actividad_id,
+        nombre       = nombre,
+        texto        = texto,
+        fecha        = datetime.now(),
+    )
+    db.session.add(nuevo)
+    db.session.commit()
+ 
+    return jsonify({
+        'ok':     True,
+        'id':     nuevo.id,
+        'nombre': nuevo.nombre,
+        'texto':  nuevo.texto,
+        'fecha':  nuevo.fecha.strftime('%d/%m/%Y %H:%M')
+    }), 201
 
 if __name__ == '__main__':
     app.run(debug=True)
