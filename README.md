@@ -48,3 +48,9 @@ Muestra todos los miembros en una tabla con columnas de nombre, email, teléfono
 
 miembro_detalle.html — Perfil del miembro
 Muestra el perfil completo de un miembro: un avatar con la inicial del nombre, sus datos de contacto y ubicación. Debajo hay una grilla de tarjetas, una por cada actividad, con su tipo (con color según categoría), día, hora, duración y descripción. Si la actividad tiene fotos se muestran en miniatura y al hacer click se abren.
+
+
+Tarea 3
+
+estadisticas.html - Estadisticas sobre los miembros y actividades
+Página que muestra 3 gráficos generados en el lado del cliente con la librería Highcharts. Al cargar la página, se hacen llamadas asíncronas con fetch a tres endpoints del servidor (/api/miembros-por-dia, /api/actividades-por-tipo y /api/actividades-por-comuna), que devuelven los datos en formato JSON desde la base de datos. Con esos datos se construyen miembros registrados por día, total de actividades por tipo y el total de actividades por comuna. Cada gráfico muestra un mensaje de carga mientras llegan los datos y un mensaje de error si la petición falla. Al final incluye un enlace para volver a la portada.

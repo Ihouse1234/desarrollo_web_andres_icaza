@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>{% block title %}ComuniRed{% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
@@ -10,20 +9,20 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0e0f13;
-      --surface: #16181f;
-      --surface2: #1e2029;
-      --border: #2a2d3a;
-      --accent: #c8f060;
-      --accent2: #60c8f0;
-      --text: #e8eaf0;
-      --text-muted: #7a7f96;
-      --danger: #f06060;
-      --success: #60f0a0;
-      --radius: 10px;
-      --font-display: 'Syne', sans-serif;
-      --font-body: 'DM Sans', sans-serif;
-    }
+      --bg: #0e0f13;        
+      --surface: #16181f;     
+      --surface2: #1e2029;   
+      --border: #2a2d3a;    
+      --accent: #c8f060;      
+      --accent2: #60c8f0;     
+      --text: #e8eaf0;      
+      --text-muted: #7a7f96;  
+      --danger: #f06060;   
+      --success: #60f0a0;     
+      --radius: 10px;         
+      --font-display: 'Syne', sans-serif;   
+      --font-body: 'DM Sans', sans-serif;   
+   }
 
     body {
       background: var(--bg);
@@ -34,11 +33,10 @@
       min-height: 100vh;
     }
 
-    /* NAV */
     nav {
-      position: sticky; top: 0; z-index: 100;
+      position: sticky; top: 0; z-index: 100;  /* se queda fija arriba al hacer scroll */
       background: rgba(14,15,19,0.92);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);             /* efecto de desenfoque detrás */
       border-bottom: 1px solid var(--border);
       display: flex; align-items: center;
       padding: 0 2rem; height: 60px; gap: 2rem;
@@ -47,7 +45,7 @@
       font-family: var(--font-display);
       font-weight: 800; font-size: 1.2rem;
       color: var(--accent); letter-spacing: -0.5px;
-      text-decoration: none; margin-right: auto;
+      text-decoration: none; margin-right: auto;  /* empuja el resto de links a la derecha */
     }
     .nav-brand span { color: var(--text-muted); font-weight: 400; }
     nav a {
@@ -59,16 +57,15 @@
     nav a:hover, nav a.active {
       color: var(--text); background: var(--surface2);
     }
-    nav a.btn-nav {
+    nav a.btn-nav {            /* botón destacado (Estadísticas) */
       background: var(--accent); color: #0e0f13;
       font-weight: 600;
     }
     nav a.btn-nav:hover { background: #d4f570; }
 
-    /* LAYOUT */
     .container { max-width: 1100px; margin: 0 auto; padding: 2.5rem 1.5rem; }
 
-    /* FLASH */
+    /* ── FLASH: mensajes temporales (éxito/error) ── */
     .flash {
       padding: 0.9rem 1.2rem; border-radius: var(--radius);
       margin-bottom: 1.5rem; font-size: 0.9rem; font-weight: 500;
@@ -77,24 +74,23 @@
     .flash-success { background: rgba(96,240,160,0.12); border: 1px solid rgba(96,240,160,0.3); color: var(--success); }
     .flash-error   { background: rgba(240,96,96,0.12);  border: 1px solid rgba(240,96,96,0.3);  color: var(--danger); }
 
-    /* CARDS */
     .card {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: var(--radius); padding: 1.5rem;
     }
 
-    /* HEADINGS */
     h1 { font-family: var(--font-display); font-size: 2rem; font-weight: 800; letter-spacing: -1px; }
     h2 { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; }
     h3 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; }
 
-    /* TAG */
+    /* ── TAG: etiquetas pequeñas (tipo de actividad, día, etc.) ── */
     .tag {
       display: inline-block; padding: 0.2rem 0.6rem;
       border-radius: 4px; font-size: 0.75rem; font-weight: 600;
       background: var(--surface2); color: var(--text-muted);
       border: 1px solid var(--border);
     }
+    /* Cada tipo de actividad tiene su propio color */
     .tag-arte      { background: rgba(200,96,240,0.15); color: #c860f0; border-color: rgba(200,96,240,0.3); }
     .tag-deporte   { background: rgba(96,200,240,0.15); color: var(--accent2); border-color: rgba(96,200,240,0.3); }
     .tag-tecnología{ background: rgba(96,240,160,0.15); color: var(--success); border-color: rgba(96,240,160,0.3); }
@@ -102,7 +98,6 @@
     .tag-recreación{ background: rgba(240,160,96,0.15); color: #f0a060; border-color: rgba(240,160,96,0.3); }
     .tag-otra      { background: var(--surface2); color: var(--text-muted); }
 
-    /* BTN */
     .btn {
       display: inline-flex; align-items: center; gap: 0.4rem;
       padding: 0.55rem 1.2rem; border-radius: var(--radius);
@@ -120,9 +115,11 @@
       border-top: 1px solid var(--border); margin-top: 4rem;
     }
   </style>
+  <!-- block css: cada página hija inyecta aquí sus estilos propios -->
   {% block css %}{% endblock %}
 </head>
 <body>
+  <!-- Barra de navegación: presente en todas las páginas -->
   <nav>
     <a class="nav-brand" href="{{ url_for('index') }}">Comuni<span>Red</span></a>
     <a href="{{ url_for('registro') }}">Registrar miembro</a>
@@ -131,15 +128,18 @@
   </nav>
 
   <div class="container">
+    <!-- Muestra los mensajes flash (éxito/error) enviados desde Flask -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for category, message in messages %}
         <div class="flash flash-{{ category }}">{{ message }}</div>
       {% endfor %}
     {% endwith %}
 
+    <!-- block content: aquí va el contenido específico de cada página -->
     {% block content %}{% endblock %}
   </div>
 
+  <!-- block javascript: cada página hija inyecta aquí su JS propio -->
   {% block javascript %}{% endblock %}
 </body>
 </html>

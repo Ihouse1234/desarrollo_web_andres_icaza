@@ -1,9 +1,13 @@
+{# Hereda la estructura base (nav, estilos globales, etc.) #}
 {% extends 'base.html' %}
 
+{# Define el título de esta página #}
 {% block title %}Inicio — ComuniRed{% endblock %}
 
+{# ── Estilos propios de la portada ── #}
 {% block css %}
 <style>
+  /* hero: sección principal de bienvenida, dividida en 2 columnas */
   .hero {
     display: grid; grid-template-columns: 1fr 1fr;
     gap: 2rem; align-items: center;
@@ -13,7 +17,7 @@
     font-size: 3rem; line-height: 1.05;
     margin-bottom: 1rem;
   }
-  .hero-text h1 em {
+  .hero-text h1 em {            /* la palabra "comunidad" en verde */
     color: var(--accent); font-style: normal;
     display: block;
   }
@@ -23,6 +27,7 @@
   }
   .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
+  /* hero-visual: las 4 cajas de estadísticas, en grilla 2x2 */
   .hero-visual {
     display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
   }
@@ -38,10 +43,11 @@
   .stat-box .lbl {
     font-size: 0.75rem; color: var(--text-muted); font-weight: 500;
   }
+  /* Cada caja tiene un color distinto en el número */
   .stat-box:nth-child(3) .num { color: var(--accent2); }
   .stat-box:nth-child(4) .num { color: #f0c860; }
 
-  /* SECCION ULTIMOS MIEMBROS */
+  /* ── Sección de últimos miembros ── */
   .section-header {
     display: flex; align-items: baseline; justify-content: space-between;
     margin: 2.5rem 0 1rem;
@@ -49,6 +55,7 @@
   .section-header h2 { font-size: 1.1rem; }
   .section-header a { font-size: 0.8rem; color: var(--accent); text-decoration: none; }
 
+  /* member-grid: grilla de tarjetas que se adapta al ancho disponible */
   .member-grid {
     display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 0.75rem;
@@ -59,13 +66,13 @@
     transition: border-color 0.2s, transform 0.2s;
     text-decoration: none; color: inherit; display: block;
   }
-  .member-card:hover {
+  .member-card:hover {           /* efecto al pasar el mouse */
     border-color: var(--accent); transform: translateY(-2px);
   }
   .member-card .mc-name {
     font-family: var(--font-display); font-weight: 700;
     font-size: 0.95rem; margin-bottom: 0.4rem;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;  /* corta nombres largos con "..." */
   }
   .member-card .mc-info {
     font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.2rem;
@@ -76,6 +83,7 @@
     border-top: 1px solid var(--border);
   }
 
+  /* empty-state: mensaje cuando no hay miembros */
   .empty-state {
     text-align: center; padding: 3rem; color: var(--text-muted);
     background: var(--surface); border-radius: var(--radius);
@@ -83,6 +91,7 @@
   }
   .empty-state p { margin-top: 0.5rem; font-size: 0.875rem; }
 
+  /* En móvil: una sola columna y se oculta el panel de estadísticas */
   @media (max-width: 700px) {
     .hero { grid-template-columns: 1fr; }
     .hero-visual { display: none; }
@@ -92,7 +101,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- HERO -->
+<!-- ── HERO: bienvenida + cajas de estadísticas ── -->
 <section class="hero">
   <div class="hero-text">
     <h1>Conecta tu <em>comunidad</em></h1>
@@ -103,6 +112,7 @@
     </div>
   </div>
   <div class="hero-visual">
+    <!-- Estos valores ({{ total_miembros }}, etc.) los envía la ruta index() de Flask -->
     <div class="stat-box">
       <span class="num">{{ total_miembros }}</span>
       <span class="lbl">Miembros</span>
@@ -122,20 +132,25 @@
   </div>
 </section>
 
-<!-- ULTIMOS MIEMBROS -->
+<!-- ── ÚLTIMOS MIEMBROS ── -->
 <div class="section-header">
   <h2>Últimos 5 miembros registrados</h2>
   <a href="{{ url_for('miembros') }}">Ver todos →</a>
 </div>
 
+{# Si hay miembros, los muestra; si no, muestra el mensaje vacío #}
 {% if ultimos_miembros %}
   <div class="member-grid">
+    {# Recorre la lista de miembros enviada por Flask #}
     {% for m in ultimos_miembros %}
+      {# Cada tarjeta es un link al detalle de ese miembro #}
       <a href="{{ url_for('miembro_detalle', id=m.id) }}" class="member-card">
         <div class="mc-name">{{ m.nombre }}</div>
         <div class="mc-info">✉ {{ m.email }}</div>
         <div class="mc-info">📞 {{ m.telefono }}</div>
+        {# m.comuna.region.nombre usa las relaciones entre tablas #}
         <div class="mc-info">📍 {{ m.comuna.nombre }}, {{ m.comuna.region.nombre }}</div>
+        {# strftime formatea la fecha a dd/mm/yyyy hh:mm #}
         <div class="mc-date">Registrado {{ m.fecha_registro.strftime('%d/%m/%Y %H:%M') }}</div>
       </a>
     {% endfor %}
