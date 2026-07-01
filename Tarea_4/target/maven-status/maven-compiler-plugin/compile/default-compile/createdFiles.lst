@@ -1,0 +1,14 @@
+com\dcc\comunired\controller\NotaController.class
+com\dcc\comunired\entity\Region.class
+com\dcc\comunired\entity\Miembro.class
+com\dcc\comunired\service\NotaService.class
+com\dcc\comunired\entity\Nota.class
+com\dcc\comunired\ComuniRedApplication.class
+com\dcc\comunired\entity\Actividad.class
+com\dcc\comunired\controller\BuscadorController.class
+com\dcc\comunired\service\BusquedaService.class
+com\dcc\comunired\repository\ActividadRepository.class
+com\dcc\comunired\entity\Comuna.class
+com\dcc\comunired\repository\NotaRepository.class
+com\dcc\comunired\dto\ActividadDTO.class
+com\dcc\comunired\controller\ViewController.class

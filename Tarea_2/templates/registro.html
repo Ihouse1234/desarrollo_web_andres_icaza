@@ -1,0 +1,391 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrar Miembro — ComuniRed{% endblock %}
+
+{% block css %}
+<style>
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-size: 1.8rem; margin-bottom: 0.3rem; }
+  .page-header p  { color: var(--text-muted); font-size: 0.9rem; }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  .form-full { grid-column: 1 / -1; }
+
+  .field { display: flex; flex-direction: column; gap: 0.4rem; }
+  label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); letter-spacing: 0.03em; }
+  input[type=text], input[type=email], input[type=tel],
+  select, textarea {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); border-radius: var(--radius);
+    padding: 0.6rem 0.85rem; font-family: var(--font-body); font-size: 0.9rem;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  input.error, select.error, textarea.error { border-color: var(--danger); }
+  .field-error { font-size: 0.78rem; color: var(--danger); }
+
+  /* ACTIVIDADES */
+  .actividades-section { margin-top: 2rem; }
+  .act-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .actividad-item {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.2rem; margin-bottom: 0.75rem;
+    position: relative;
+  }
+  .actividad-item .act-title {
+    font-family: var(--font-display); font-size: 0.85rem; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 1rem;
+  }
+  .btn-remove-act {
+    position: absolute; top: 0.8rem; right: 0.8rem;
+    background: rgba(240,96,96,0.15); color: var(--danger);
+    border: 1px solid rgba(240,96,96,0.3); border-radius: 6px;
+    padding: 0.2rem 0.6rem; font-size: 0.75rem; cursor: pointer;
+    font-family: var(--font-body);
+  }
+
+  /* FOTOS */
+  .fotos-area {
+    border: 2px dashed var(--border); border-radius: var(--radius);
+    padding: 1.5rem; text-align: center; cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .fotos-area:hover { border-color: var(--accent); }
+  .fotos-area p { color: var(--text-muted); font-size: 0.85rem; }
+  .fotos-preview { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+  .foto-thumb {
+    width: 64px; height: 64px; object-fit: cover;
+    border-radius: 6px; border: 1px solid var(--border);
+  }
+
+  .form-actions {
+    display: flex; gap: 0.75rem; margin-top: 2rem;
+    padding-top: 1.5rem; border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Registrar miembro</h1>
+  <p>Complete el formulario con los datos del nuevo miembro y sus actividades.</p>
+</div>
+
+<form id="form-registro" method="POST" action="{{ url_for('registro') }}" enctype="multipart/form-data" novalidate>
+
+  <!-- DATOS PERSONALES -->
+  <div class="card">
+    <h2 style="margin-bottom:1.2rem">Datos personales</h2>
+    <div class="form-grid">
+
+      <div class="field">
+        <label for="nombre">Nombre completo *</label>
+        <input type="text" id="nombre" name="nombre" value="{{ form_data.nombre if form_data else '' }}">
+        <span class="field-error" id="err-nombre">
+          {% if errors and errors.nombre %}{{ errors.nombre }}{% endif %}
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="email">Correo electrónico *</label>
+        <input type="email" id="email" name="email" value="{{ form_data.email if form_data else '' }}">
+        <span class="field-error" id="err-email">
+          {% if errors and errors.email %}{{ errors.email }}{% endif %}
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="telefono">Teléfono * (+56912345678)</label>
+        <input type="tel" id="telefono" name="telefono" placeholder="+56912345678"
+               value="{{ form_data.telefono if form_data else '' }}">
+        <span class="field-error" id="err-telefono">
+          {% if errors and errors.telefono %}{{ errors.telefono }}{% endif %}
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="region_id">Región *</label>
+        <select id="region_id" name="region_id">
+          <option value="">— Seleccione región —</option>
+          {% for r in regiones %}
+            <option value="{{ r.id }}"
+              {% if form_data and form_data.region_id|string == r.id|string %}selected{% endif %}>
+              {{ r.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+        <span class="field-error" id="err-region">
+          {% if errors and errors.region_id %}{{ errors.region_id }}{% endif %}
+        </span>
+      </div>
+
+      <div class="field">
+        <label for="comuna_id">Comuna *</label>
+        <select id="comuna_id" name="comuna_id">
+          <option value="">— Seleccione comuna —</option>
+          {% for c in comunas %}
+            <option value="{{ c.id }}"
+              data-region="{{ c.region_id }}"
+              {% if form_data and form_data.comuna_id|string == c.id|string %}selected{% endif %}>
+              {{ c.nombre }}
+            </option>
+          {% endfor %}
+        </select>
+        <span class="field-error" id="err-comuna">
+          {% if errors and errors.comuna_id %}{{ errors.comuna_id }}{% endif %}
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ACTIVIDADES -->
+  <div class="actividades-section">
+    <div class="act-header">
+      <h2>Actividades</h2>
+      <button type="button" class="btn btn-ghost" id="btn-add-act">+ Agregar actividad</button>
+    </div>
+    <span class="field-error" id="err-actividades">
+      {% if errors and errors.actividades %}{{ errors.actividades }}{% endif %}
+    </span>
+
+    <div id="actividades-container">
+      {% if form_data and form_data.actividades %}
+        {% for act in form_data.actividades %}
+          <div class="actividad-item" data-index="{{ loop.index0 }}">
+            <div class="act-title">Actividad #{{ loop.index }}</div>
+            <button type="button" class="btn-remove-act" onclick="removeActividad(this)">✕ Eliminar</button>
+            <div class="form-grid">
+              <div class="field">
+                <label>Nombre *</label>
+                <input type="text" name="act_nombre[]" value="{{ act.nombre }}" required>
+              </div>
+              <div class="field">
+                <label>Tipo *</label>
+                <select name="act_tipo[]">
+                  {% for t in ['arte','deporte','tecnología','social','recreación','otra'] %}
+                    <option value="{{ t }}" {% if act.tipo == t %}selected{% endif %}>{{ t|capitalize }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="field">
+                <label>Día *</label>
+                <select name="act_dia[]">
+                  {% for d in ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'] %}
+                    <option value="{{ d }}" {% if act.dia == d %}selected{% endif %}>{{ d|capitalize }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="field">
+                <label>Hora inicio (HH:MM) *</label>
+                <input type="text" name="act_hora[]" value="{{ act.hora }}" placeholder="08:30">
+              </div>
+              <div class="field">
+                <label>Duración (HH:MM) *</label>
+                <input type="text" name="act_duracion[]" value="{{ act.duracion }}" placeholder="01:30">
+              </div>
+              <div class="field form-full">
+                <label>Descripción</label>
+                <textarea name="act_descripcion[]" rows="2">{{ act.descripcion }}</textarea>
+              </div>
+              <div class="field form-full">
+                <label>Fotos</label>
+                <div class="fotos-area" onclick="this.nextElementSibling.click()">
+                  <p>📎 Haga click para seleccionar fotos (JPG, PNG, WEBP)</p>
+                </div>
+                <input type="file" name="act_fotos_{{ loop.index0 }}[]" multiple accept="image/*" style="display:none"
+                       onchange="previewFotos(this)">
+                <div class="fotos-preview"></div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Registrar miembro</button>
+    <a href="{{ url_for('index') }}" class="btn btn-ghost">Cancelar</a>
+  </div>
+</form>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  // ── REGIÓN / COMUNA DINÁMICO ─────────────────────────────────
+  const selectRegion = document.getElementById('region_id');
+  const selectComuna = document.getElementById('comuna_id');
+  const allOptions   = Array.from(selectComuna.options);
+
+  function filtrarComunas() {
+    const rid = selectRegion.value;
+    selectComuna.innerHTML = '<option value="">— Seleccione comuna —</option>';
+    allOptions.forEach(opt => {
+      if (!opt.value) return;
+      if (!rid || opt.dataset.region === rid) {
+        selectComuna.appendChild(opt.cloneNode(true));
+      }
+    });
+  }
+  selectRegion.addEventListener('change', filtrarComunas);
+  if (selectRegion.value) filtrarComunas();
+
+  // ── ACTIVIDADES DINÁMICAS ─────────────────────────────────────
+  let actCount = document.querySelectorAll('.actividad-item').length;
+
+  const TIPOS = ['arte','deporte','tecnología','social','recreación','otra'];
+  const DIAS  = ['lunes','martes','miércoles','jueves','viernes','sábado','domingo'];
+
+  function buildSelectOptions(items) {
+    return items.map(i => `<option value="${i}">${i.charAt(0).toUpperCase()+i.slice(1)}</option>`).join('');
+  }
+
+  document.getElementById('btn-add-act').addEventListener('click', function() {
+    const idx = actCount++;
+    const html = `
+      <div class="actividad-item" data-index="${idx}">
+        <div class="act-title">Actividad #${idx+1}</div>
+        <button type="button" class="btn-remove-act" onclick="removeActividad(this)">✕ Eliminar</button>
+        <div class="form-grid">
+          <div class="field">
+            <label>Nombre *</label>
+            <input type="text" name="act_nombre[]" required>
+            <span class="field-error"></span>
+          </div>
+          <div class="field">
+            <label>Tipo *</label>
+            <select name="act_tipo[]">${buildSelectOptions(TIPOS)}</select>
+          </div>
+          <div class="field">
+            <label>Día *</label>
+            <select name="act_dia[]">${buildSelectOptions(DIAS)}</select>
+          </div>
+          <div class="field">
+            <label>Hora inicio (HH:MM) *</label>
+            <input type="text" name="act_hora[]" placeholder="08:30">
+            <span class="field-error"></span>
+          </div>
+          <div class="field">
+            <label>Duración (HH:MM) *</label>
+            <input type="text" name="act_duracion[]" placeholder="01:30">
+            <span class="field-error"></span>
+          </div>
+          <div class="field form-full">
+            <label>Descripción</label>
+            <textarea name="act_descripcion[]" rows="2"></textarea>
+          </div>
+          <div class="field form-full">
+            <label>Fotos</label>
+            <div class="fotos-area" onclick="this.nextElementSibling.click()">
+              <p>📎 Haga click para seleccionar fotos (JPG, PNG, WEBP)</p>
+            </div>
+            <input type="file" name="act_fotos_${idx}[]" multiple accept="image/*"
+                   style="display:none" onchange="previewFotos(this)">
+            <div class="fotos-preview"></div>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('actividades-container').insertAdjacentHTML('beforeend', html);
+  });
+
+  function removeActividad(btn) {
+    btn.closest('.actividad-item').remove();
+  }
+
+  function previewFotos(input) {
+    const preview = input.nextElementSibling;
+    preview.innerHTML = '';
+    Array.from(input.files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'foto-thumb';
+        preview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ── VALIDACIÓN JS ─────────────────────────────────────────────
+  const reHora = /^\d{2}:\d{2}$/;
+  const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const reTel   = /^\+?[0-9]{7,15}$/;
+
+  function setError(id, msg) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msg;
+  }
+
+  document.getElementById('form-registro').addEventListener('submit', function(e) {
+    let valid = true;
+
+    // nombre
+    const nombre = document.getElementById('nombre').value.trim();
+    if (!nombre) { setError('err-nombre', 'El nombre es obligatorio.'); valid = false; }
+    else setError('err-nombre', '');
+
+    // email
+    const email = document.getElementById('email').value.trim();
+    if (!reEmail.test(email)) { setError('err-email', 'Ingrese un email válido.'); valid = false; }
+    else setError('err-email', '');
+
+    // telefono
+    const tel = document.getElementById('telefono').value.trim();
+    if (!reTel.test(tel)) { setError('err-telefono', 'Formato inválido (ej: +56912345678).'); valid = false; }
+    else setError('err-telefono', '');
+
+    // region / comuna
+    if (!document.getElementById('region_id').value) {
+      setError('err-region', 'Seleccione una región.'); valid = false;
+    } else setError('err-region', '');
+
+    if (!document.getElementById('comuna_id').value) {
+      setError('err-comuna', 'Seleccione una comuna.'); valid = false;
+    } else setError('err-comuna', '');
+
+    // actividades
+    const actItems = document.querySelectorAll('.actividad-item');
+    if (actItems.length === 0) {
+      setError('err-actividades', 'Debe agregar al menos una actividad.');
+      valid = false;
+    } else {
+      setError('err-actividades', '');
+      actItems.forEach(item => {
+        const nombreAct = item.querySelector('input[name="act_nombre[]"]');
+        const horaAct   = item.querySelector('input[name="act_hora[]"]');
+        const durAct    = item.querySelector('input[name="act_duracion[]"]');
+        const errNombre = nombreAct.nextElementSibling;
+        const errHora   = horaAct  ? horaAct.nextElementSibling : null;
+        const errDur    = durAct   ? durAct.nextElementSibling  : null;
+
+        if (!nombreAct.value.trim()) {
+          if (errNombre) errNombre.textContent = 'Nombre obligatorio.';
+          valid = false;
+        } else if (errNombre) errNombre.textContent = '';
+
+        if (horaAct && !reHora.test(horaAct.value.trim())) {
+          if (errHora) errHora.textContent = 'Formato HH:MM requerido.';
+          valid = false;
+        } else if (errHora) errHora.textContent = '';
+
+        if (durAct && !reHora.test(durAct.value.trim())) {
+          if (errDur) errDur.textContent = 'Formato HH:MM requerido.';
+          valid = false;
+        } else if (errDur) errDur.textContent = '';
+      });
+    }
+
+    if (!valid) e.preventDefault();
+  });
+</script>
+{% endblock %}
