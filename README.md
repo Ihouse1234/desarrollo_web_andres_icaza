@@ -54,3 +54,24 @@ Tarea 3
 
 estadisticas.html - Estadisticas sobre los miembros y actividades
 Página que muestra 3 gráficos generados en el lado del cliente con la librería Highcharts. Al cargar la página, se hacen llamadas asíncronas con fetch a tres endpoints del servidor (/api/miembros-por-dia, /api/actividades-por-tipo y /api/actividades-por-comuna), que devuelven los datos en formato JSON desde la base de datos. Con esos datos se construyen miembros registrados por día, total de actividades por tipo y el total de actividades por comuna. Cada gráfico muestra un mensaje de carga mientras llegan los datos y un mensaje de error si la petición falla. Al final incluye un enlace para volver a la portada.
+
+
+Tarea 4
+
+Arquitectura
+El proyecto sigue la arquitectura en capas estándar de Spring Boot:
+- Entity: clases JPA que mapean las tablas existentes (Actividad, Miembro, Comuna, Region, Nota).
+- Repository: interfaces que extienden JpaRepository para el acceso a datos. Las queries complejas (buscador y cálculo de promedio) se definen con @Query en JPQL.
+- Service: lógica de negocio, incluyendo la validación de notas (enteros 1-7) y el recálculo de promedios.
+- Controller: endpoints REST que devuelven JSON (@RestController) y la vista del buscador (@Controller).
+- DTO: objetos planos para enviar al frontend solo los datos necesarios, evitando las referencias circulares de las entidades al serializar a JSON.
+
+Buscador
+Se implementó con llamadas asíncronas (fetch) que se disparan automáticamente al escribir 3 o más caracteres. La búsqueda se realiza en el servidor con una query JPQL que recorre el nombre, la descripción y el nombre de la comuna mediante LIKE, de forma insensible a mayúsculas. Las coincidencias se resaltan en el cliente envolviendo el patrón en etiquetas <mark>.
+
+Sistema de notas
+Las notas se almacenan en la tabla nota (una fila por evaluación). Al evaluar, el cliente envía la nota de forma asíncrona; el servidor valida que sea un entero entre 1 y 7, la guarda, y recalcula el promedio con AVG(). El nuevo promedio se devuelve y actualiza en la interfaz sin recargar la página. Las actividades sin evaluaciones muestran "-".
+
+Base de datos
+Se reutiliza la base de datos tarea2, agregando únicamente la tabla nota mediante tabla-nota.sql. La configuración usa ddl-auto=none para que Hibernate no modifique las tablas existentes.
+
