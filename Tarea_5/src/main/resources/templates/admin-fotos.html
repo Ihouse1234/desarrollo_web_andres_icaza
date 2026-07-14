@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrador de Fotos — ComuniRed</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Comuni<span class="brand-accent">Red</span></span>
+    <span class="nav-sub">Administrador de fotos</span>
+  </nav>
+
+  <main class="container container-wide">
+    <header class="page-head">
+      <h1>Galería de fotos</h1>
+      <p>Fotos ordenadas de la más reciente a la más antigua.</p>
+    </header>
+
+    <!-- Mensaje si no hay fotos -->
+    <p class="vacio" th:if="${#lists.isEmpty(fotos)}">
+      No hay fotos registradas.
+    </p>
+
+    <!-- Galería: una tarjeta por foto -->
+    <div class="galeria" th:unless="${#lists.isEmpty(fotos)}">
+      <article class="foto-card" th:each="foto : ${fotos}"
+               th:id="'foto-' + ${foto.id}"
+               th:classappend="${foto.eliminada} ? ' foto-eliminada' : ''">
+
+        <img class="foto-img"
+             th:src="@{'/uploads/' + ${foto.nombreArchivo}}"
+             th:alt="'Foto ' + ${foto.id}">
+
+        <div class="foto-info">
+          <p class="foto-dato">
+            <span class="etiqueta">Fecha registro:</span>
+            <span th:text="${foto.fechaRegistro}">--</span>
+          </p>
+          <p class="foto-dato">
+            <span class="etiqueta">Comuna:</span>
+            <span th:text="${foto.comuna}">--</span>
+          </p>
+          <p class="foto-dato">
+            <span class="etiqueta">Email:</span>
+            <span th:text="${foto.email}">--</span>
+          </p>
+        </div>
+
+        <div class="foto-acciones">
+          <!-- Si ya está eliminada, muestra el estado en vez del botón -->
+          <span class="badge-eliminada" th:if="${foto.eliminada}">Eliminada</span>
+          <button type="button" class="btn-eliminar"
+                  th:unless="${foto.eliminada}"
+                  th:data-id="${foto.id}">
+            Marcar como eliminada
+          </button>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <script th:src="@{/js/admin-fotos.js}"></script>
+</body>
+</html>

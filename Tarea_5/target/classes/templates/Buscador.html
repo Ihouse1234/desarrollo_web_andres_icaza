@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Buscador de Actividades — ComuniRed</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}"/>
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Comuni<span class="brand-accent">Red</span></span>
+    <span class="nav-sub">Buscador de actividades</span>
+  </nav>
+
+  <main class="container">
+    <header class="page-head">
+      <h1>Buscar actividades</h1>
+      <p>Escribe al menos 3 caracteres para buscar por nombre, descripción o comuna.</p>
+    </header>
+
+    <div class="search-box">
+      <input type="text"
+             id="input-busqueda"
+             placeholder="Ej: deporte, Santiago, taller..."
+             autocomplete="off"/>
+    </div>
+
+    <!-- JavaScript inserta los resultados -->
+    <div id="resultados" class="resultados"></div>
+  </main>
+
+  <!-- th:src genera la ruta en /static/js/ -->
+  <script th:src="@{/js/buscador.js}"></script>
+</body>
+</html>

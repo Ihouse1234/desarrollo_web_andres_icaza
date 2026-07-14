@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadística de Fotos — ComuniRed</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Comuni<span class="brand-accent">Red</span></span>
+    <span class="nav-sub">Estadística de fotos</span>
+  </nav>
+
+  <main class="container">
+    <header class="page-head">
+      <h1>Estado de las fotos</h1>
+      <p>Total de fotos vigentes y eliminadas.</p>
+    </header>
+
+    <!-- Highcharts dibuja el gráfico dentro de este div -->
+    <div class="chart-card">
+      <div id="chart-fotos" class="chart-container"></div>
+    </div>
+  </main>
+
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script th:src="@{/js/estadistica-fotos.js}"></script>
+</body>
+</html>
