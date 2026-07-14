@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ miembro.nombre }} — ComuniRed{% endblock %}
+
+{% block css %}
+<style>
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--text-muted); text-decoration: none; font-size: 0.85rem;
+    margin-bottom: 1.5rem; transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  .profile-header {
+    display: flex; align-items: flex-start; gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 1.6rem; font-weight: 800;
+    color: #0e0f13; flex-shrink: 0;
+  }
+  .profile-info h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+  .profile-meta {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-size: 0.85rem; color: var(--text-muted);
+  }
+  .profile-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+  /* ACTIVIDADES */
+  .acts-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  .act-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.2rem;
+  }
+  .act-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 0.5rem; margin-bottom: 0.75rem;
+  }
+  .act-card-header h3 { font-size: 1rem; }
+  .act-meta {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .act-info {
+    font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.6rem;
+  }
+  .act-desc {
+    font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+
+  /* FOTOS */
+  .fotos-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.4rem; margin-top: 0.75rem;
+  }
+  .foto-item img {
+    width: 100%; aspect-ratio: 1; object-fit: cover;
+    border-radius: 6px; border: 1px solid var(--border);
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .foto-item img:hover { opacity: 0.8; }
+
+  /* LIGHTBOX */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.85); align-items: center; justify-content: center;
+  }
+  .lightbox.open { display: flex; }
+  .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+  .lightbox-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: var(--surface); border: none; color: var(--text);
+    width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  @media (max-width: 500px) {
+    .profile-header { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('miembros') }}" class="back-link">← Volver al listado</a>
+
+<div class="profile-header">
+  <div class="avatar">{{ miembro.nombre[0]|upper }}</div>
+  <div class="profile-info">
+    <h1>{{ miembro.nombre }}</h1>
+    <div class="profile-meta">
+      <span>{{ miembro.email }}</span>
+      <span>{{ miembro.telefono }}</span>
+      <span>{{ miembro.comuna.nombre }}, {{ miembro.comuna.region.nombre }}</span>
+      <span>Registrado el {{ miembro.fecha_registro.strftime('%d/%m/%Y a las %H:%M') }}</span>
+    </div>
+  </div>
+</div>
+
+<h2 style="margin-bottom:1rem">
+  Actividades
+  <span style="font-size:0.85rem;color:var(--text-muted);font-weight:400;margin-left:0.5rem">
+    ({{ miembro.actividades|length }})
+  </span>
+</h2>
+
+{% if miembro.actividades %}
+  <div class="acts-grid">
+    {% for act in miembro.actividades %}
+      <div class="act-card">
+        <div class="act-card-header">
+          <h3>{{ act.nombre }}</h3>
+          <span class="tag tag-{{ act.tipo }}">{{ act.tipo }}</span>
+        </div>
+        <div class="act-meta">
+          <span class="tag">{{ act.dia|capitalize }}</span>
+          <span class="tag">{{ act.hora_inicio }}</span>
+          <span class="tag">{{ act.duracion }}</span>
+        </div>
+        {% if act.descripcion %}
+          <p class="act-desc">{{ act.descripcion }}</p>
+        {% endif %}
+
+        {% if act.fotos %}
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.3rem">
+            📸 {{ act.fotos|length }} foto{{ 's' if act.fotos|length != 1 else '' }}
+          </div>
+          <div class="fotos-grid">
+            {% for foto in act.fotos %}
+              <div class="foto-item">
+                <img src="{{ url_for('static', filename='uploads/' + foto.nombre_archivo) }}"
+                     alt="{{ foto.nombre_archivo }}">
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p style="color:var(--text-muted)">Este miembro no tiene actividades registradas.</p>
+{% endif %}
+
+{% endblock %}

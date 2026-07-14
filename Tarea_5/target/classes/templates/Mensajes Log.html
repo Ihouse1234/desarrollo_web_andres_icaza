@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mensajes de Log — ComuniRed</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+  <nav class="navbar">
+    <span class="brand">Comuni<span class="brand-accent">Red</span></span>
+    <span class="nav-sub">Mensajes de log</span>
+  </nav>
+
+  <main class="container container-wide">
+    <header class="page-head">
+      <h1>Registro de acciones</h1>
+      <p>Mensajes ordenados de la fecha más reciente a la más antigua.</p>
+    </header>
+
+    <p class="vacio" th:if="${#lists.isEmpty(logs)}">
+      No hay mensajes registrados.
+    </p>
+
+    <table class="tabla-log" th:unless="${#lists.isEmpty(logs)}">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Fecha</th>
+          <th scope="col">Mensaje</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="log : ${logs}">
+          <td th:text="${log.id}">0</td>
+          <!-- #temporals formatea LocalDateTime en Thymeleaf -->
+          <td th:text="${#temporals.format(log.fecha, 'dd/MM/yyyy HH:mm:ss')}">--</td>
+          <td th:text="${log.mensaje}">--</td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

@@ -1,0 +1,421 @@
+{# Hereda la estructura base #}
+{% extends 'base.html' %}
+
+{# El título usa el nombre del miembro #}
+{% block title %}{{ miembro.nombre }} — ComuniRed{% endblock %}
+
+{# ── Estilos propios de la página de detalle ── #}
+{% block css %}
+<style>
+  .back-link {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    color: var(--text-muted); text-decoration: none; font-size: 0.85rem;
+    margin-bottom: 1.5rem; transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--accent); }
+
+  /* profile-header: cabecera con avatar y datos del miembro */
+  .profile-header {
+    display: flex; align-items: flex-start; gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  /* avatar: círculo con la inicial del nombre */
+  .avatar {
+    width: 72px; height: 72px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-size: 1.6rem; font-weight: 800;
+    color: #0e0f13; flex-shrink: 0;
+  }
+  .profile-info h1 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+  .profile-meta {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-size: 0.85rem; color: var(--text-muted);
+  }
+  .profile-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+  /* ── ACTIVIDADES ── */
+  /* acts-grid: grilla de tarjetas de actividad */
+  .acts-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  .act-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.2rem;
+  }
+  .act-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 0.5rem; margin-bottom: 0.75rem;
+  }
+  .act-card-header h3 { font-size: 1rem; }
+  .act-meta {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .act-desc {
+    font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── FOTOS ── */
+  .fotos-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 0.4rem; margin-top: 0.75rem;
+  }
+  .foto-item img {
+    width: 100%; aspect-ratio: 1; object-fit: cover;
+    border-radius: 6px; border: 1px solid var(--border);
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .foto-item img:hover { opacity: 0.8; }
+
+  /* ── LIGHTBOX ── */
+  .lightbox {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.85); align-items: center; justify-content: center;
+  }
+  .lightbox.open { display: flex; }   /* se muestra al hacer click en una foto */
+  .lightbox img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
+  .lightbox-close {
+    position: absolute; top: 1rem; right: 1rem;
+    background: var(--surface); border: none; color: var(--text);
+    width: 36px; height: 36px; border-radius: 50%; font-size: 1.1rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── COMENTARIOS ── */
+  .comentarios-section {
+    margin-top: 1.2rem;
+    border-top: 1px solid var(--border);
+    padding-top: 1rem;
+  }
+  .comentarios-section h4 {
+    font-size: 0.8rem; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  /* comentario-item: cada comentario individual */
+  .comentario-item {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.75rem; margin-bottom: 0.5rem;
+  }
+  .comentario-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .comentario-autor {
+    font-weight: 700; font-size: 0.82rem; color: var(--accent);
+  }
+  .comentario-fecha {
+    font-size: 0.75rem; color: var(--text-muted);
+  }
+  .comentario-texto {
+    font-size: 0.85rem; color: var(--text); line-height: 1.5;
+  }
+  .sin-comentarios {
+    font-size: 0.82rem; color: var(--text-muted); font-style: italic;
+  }
+
+  /* ── FORMULARIO DE COMENTARIO ── */
+  .form-comentario {
+    margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;
+  }
+  .form-comentario input,
+  .form-comentario textarea {
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--text); border-radius: 8px;
+    padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.85rem;
+    width: 100%; transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .form-comentario input:focus,
+  .form-comentario textarea:focus {
+    outline: none; border-color: var(--accent);
+  }
+  /* clase que se agrega cuando un campo tiene error */
+  .form-comentario input.field-error-input,
+  .form-comentario textarea.field-error-input {
+    border-color: var(--danger);
+  }
+  .form-error-msg {
+    font-size: 0.75rem; color: var(--danger); display: none;  /* oculto hasta que haya error */
+  }
+  .btn-comentar {
+    align-self: flex-start;
+    background: var(--accent); color: #0e0f13;
+    border: none; border-radius: 8px;
+    padding: 0.45rem 1rem; font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; font-family: var(--font-body); transition: background 0.2s;
+  }
+  .btn-comentar:hover { background: #d4f570; }
+  .btn-comentar:disabled { opacity: 0.5; cursor: not-allowed; }   /* mientras envía */
+  .msg-exito {
+    font-size: 0.8rem; color: var(--success);
+    display: none; margin-top: 0.3rem;
+  }
+
+  @media (max-width: 500px) {
+    .profile-header { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('miembros') }}" class="back-link">← Volver al listado</a>
+
+<!-- ── PERFIL DEL MIEMBRO ── -->
+<div class="profile-header">
+  {# Avatar con la primera letra del nombre en mayúscula #}
+  <div class="avatar">{{ miembro.nombre[0]|upper }}</div>
+  <div class="profile-info">
+    <h1>{{ miembro.nombre }}</h1>
+    <div class="profile-meta">
+      <span>✉ {{ miembro.email }}</span>
+      <span>📞 {{ miembro.telefono }}</span>
+      <span>📍 {{ miembro.comuna.nombre }}, {{ miembro.comuna.region.nombre }}</span>
+      <span>📅 Registrado el {{ miembro.fecha_registro.strftime('%d/%m/%Y a las %H:%M') }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── ACTIVIDADES ── -->
+<h2 style="margin-bottom:1rem">
+  Actividades
+  <span style="font-size:0.85rem;color:var(--text-muted);font-weight:400;margin-left:0.5rem">
+    ({{ miembro.actividades|length }})
+  </span>
+</h2>
+
+{% if miembro.actividades %}
+  <div class="acts-grid">
+    {# Recorre las actividades del miembro #}
+    {% for act in miembro.actividades %}
+      <div class="act-card">
+        <div class="act-card-header">
+          <h3>{{ act.nombre }}</h3>
+          {# La clase tag-{{ act.tipo }} le da el color según el tipo #}
+          <span class="tag tag-{{ act.tipo }}">{{ act.tipo }}</span>
+        </div>
+        <div class="act-meta">
+          <span class="tag">{{ act.dia|capitalize }}</span>
+          <span class="tag">🕐 {{ act.hora_inicio }}</span>
+          <span class="tag">⏱ {{ act.duracion }}</span>
+        </div>
+        {% if act.descripcion %}
+          <p class="act-desc">{{ act.descripcion }}</p>
+        {% endif %}
+
+        {# Muestra las fotos solo si la actividad tiene #}
+        {% if act.fotos %}
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.3rem">
+            📸 {{ act.fotos|length }} foto{{ 's' if act.fotos|length != 1 else '' }}
+          </div>
+          <div class="fotos-grid">
+            {% for foto in act.fotos %}
+              <div class="foto-item">
+                {# url_for('static', ...) construye la ruta a la foto guardada #}
+                <img src="{{ url_for('static', filename='uploads/' + foto.nombre_archivo) }}"
+                     alt="{{ foto.nombre_archivo }}"
+                     onclick="openLightbox(this.src)">
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="comentarios-section">
+          <h4>💬 Comentarios</h4>
+
+          {# Este div se rellena con los comentarios traídos por fetch (JS) #}
+          {# El id incluye act.id para identificar a qué actividad pertenece #}
+          <div id="comentarios-{{ act.id }}" class="comentarios-lista">
+            <p class="sin-comentarios">Cargando comentarios...</p>
+          </div>
+
+          <!-- Formulario para agregar un comentario -->
+          <div class="form-comentario">
+            <input type="text"
+                   id="nombre-{{ act.id }}"
+                   placeholder="Tu nombre (mín. 3, máx. 80 caracteres)"
+                   maxlength="80">
+            <span class="form-error-msg" id="err-nombre-{{ act.id }}">
+              El nombre debe tener entre 3 y 80 caracteres.
+            </span>
+
+            <textarea id="texto-{{ act.id }}"
+                      rows="4" cols="50"
+                      placeholder="Escribe un comentario (mín. 5 caracteres)..."></textarea>
+            <span class="form-error-msg" id="err-texto-{{ act.id }}">
+              El comentario debe tener al menos 5 caracteres.
+            </span>
+
+            {# Al hacer click, llama a enviarComentario con el id de esta actividad #}
+            <button class="btn-comentar"
+                    onclick="enviarComentario({{ act.id }})">
+              Agregar comentario
+            </button>
+            <span class="msg-exito" id="exito-{{ act.id }}">
+              ✓ Comentario agregado
+            </span>
+          </div>
+        </div>
+
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p style="color:var(--text-muted)">Este miembro no tiene actividades registradas.</p>
+{% endif %}
+
+<!-- ── LIGHTBOX ── -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="Foto ampliada">
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+  // LIGHTBOX — abrir/cerrar la foto ampliada
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  // Cierra el lightbox al presionar Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  // COMENTARIOS
+  // Crea el elemento HTML de un comentario a partir de sus datos
+  function renderComentario(c) {
+    const div = document.createElement('div');
+    div.className = 'comentario-item';
+    // escapeHtml protege contra XSS
+    div.innerHTML = `
+      <div class="comentario-meta">
+        <span class="comentario-autor">${escapeHtml(c.nombre)}</span>
+        <span class="comentario-fecha">${c.fecha}</span>
+      </div>
+      <p class="comentario-texto">${escapeHtml(c.texto)}</p>
+    `;
+    return div;
+  }
+
+  // Convierte caracteres peligrosos (< > etc.) en texto seguro
+  function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.appendChild(document.createTextNode(str));
+    return d.innerHTML;
+  }
+
+  // Pide al servidor los comentarios de una actividad y los muestra
+  function cargarComentarios(actividadId) {
+    const contenedor = document.getElementById(`comentarios-${actividadId}`);
+
+    fetch(`/api/comentarios/${actividadId}`)   
+      .then(r => r.json())
+      .then(comentarios => {
+        contenedor.innerHTML = '';
+        if (comentarios.length === 0) {
+          contenedor.innerHTML = '<p class="sin-comentarios">Sin comentarios aún. ¡Sé el primero!</p>';
+        } else {
+          // Crea un elemento por cada comentario
+          comentarios.forEach(c => contenedor.appendChild(renderComentario(c)));
+        }
+      })
+      .catch(() => {
+        contenedor.innerHTML = '<p class="sin-comentarios">Error al cargar comentarios.</p>';
+      });
+  }
+
+  // Valida y envía un comentario nuevo al servidor
+  function enviarComentario(actividadId) {
+    const inputNombre = document.getElementById(`nombre-${actividadId}`);
+    const inputTexto  = document.getElementById(`texto-${actividadId}`);
+    const errNombre   = document.getElementById(`err-nombre-${actividadId}`);
+    const errTexto    = document.getElementById(`err-texto-${actividadId}`);
+    const msgExito    = document.getElementById(`exito-${actividadId}`);
+    const btn         = inputNombre.closest('.form-comentario').querySelector('.btn-comentar');
+
+    const nombre = inputNombre.value.trim();
+    const texto  = inputTexto.value.trim();
+    let valid = true;
+
+    // ── Validación lado cliente ──
+    if (nombre.length < 3 || nombre.length > 80) {
+      errNombre.style.display = 'block';
+      inputNombre.classList.add('field-error-input');
+      valid = false;
+    } else {
+      errNombre.style.display = 'none';
+      inputNombre.classList.remove('field-error-input');
+    }
+    if (texto.length < 5) {
+      errTexto.style.display = 'block';
+      inputTexto.classList.add('field-error-input');
+      valid = false;
+    } else {
+      errTexto.style.display = 'none';
+      inputTexto.classList.remove('field-error-input');
+    }
+
+    if (!valid) return;   // si algo falla, no envía
+
+    // ── Enviar al servidor ──
+    btn.disabled = true;            // desactiva el botón mientras envía
+    btn.textContent = 'Enviando...';
+
+    fetch(`/api/comentarios/${actividadId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },   // avisa que el cuerpo es JSON
+      body: JSON.stringify({ nombre, texto })            // convierte a texto JSON
+    })
+      .then(r => r.json())
+      .then(resp => {
+        if (resp.ok) {
+          // Éxito: limpia el formulario y recarga la lista
+          inputNombre.value = '';
+          inputTexto.value  = '';
+          msgExito.style.display = 'inline';
+          setTimeout(() => { msgExito.style.display = 'none'; }, 3000);   // oculta a los 3s
+          cargarComentarios(actividadId);   // vuelve a cargar los comentarios
+        } else {
+          // El servidor devolvió errores de validación
+          if (resp.errors) {
+            if (resp.errors.nombre) {
+              errNombre.textContent    = resp.errors.nombre;
+              errNombre.style.display  = 'block';
+              inputNombre.classList.add('field-error-input');
+            }
+            if (resp.errors.texto) {
+              errTexto.textContent    = resp.errors.texto;
+              errTexto.style.display  = 'block';
+              inputTexto.classList.add('field-error-input');
+            }
+          }
+        }
+      })
+      .catch(() => {
+        alert('Error al enviar el comentario. Intente nuevamente.');
+      })
+      .finally(() => {
+        // Pase lo que pase, reactiva el botón
+        btn.disabled = false;
+        btn.textContent = 'Agregar comentario';
+      });
+  }
+
+  // Al cargar la página, trae los comentarios de TODAS las actividades
+  // (Jinja genera una llamada cargarComentarios por cada actividad)
+  document.addEventListener('DOMContentLoaded', function() {
+    {% for act in miembro.actividades %}
+      cargarComentarios({{ act.id }});
+    {% endfor %}
+  });
+
+</script>
+{% endblock %}
